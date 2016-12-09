@@ -1,1 +1,67 @@
+1.统计每日、周、月的UV数量。
+方案：程序的输入：日志文件；输出：UV数量
+Map的输入key:行号	Value:每一行的值
+		正则匹配，找到IP和时间，时间精确到天day。
+Map的输出key:IP+\t+day	Value:day
+Reduce:输入key:IP+\t+day	Value:day
+	定义count，每运行一次reduce，count++
+cleanUp:输出count
+2.统计每日的PV量。
+方案：程序的输入：日志文件；输出：UV数量
+Map的输入key:行号	Value:每一行的值
+正则匹配，找到满足条件的页面，定义全局变量，每找到符合的页面一次全局变量加一
+CleanUp：将计数器输出
+3.统计次日留存、次月留存。
+方案：输入：日志文件	输出：留存IP数
+Map:输入key:行号	Value:每一行的值
+根据输入，判断文件名，若文件名为前一天：输出时key:IP，Value：”A”
+若文件名为前一天：输出时key:IP，Value：”B”
+Reduce：输入key:IP，Value：A和B的集合
+声明两个Boolean变量flag1,flag2。初始值为false
+定义全局变量count
+遍历Values：若Value为A则flag1为true
+若Value为B则flag2为true
+遍历结束之后，当flag1和flag2都为true时，count++
+CleanUp:reduce执行完之后，输出count即为留存数
+4.统计每类网页的跳转率。
+方案：输入：日志文件	输出跳转率
+Map输入：行号		Value:每一行的值
+正则匹配，找到IP，时间和Url
+若Url为跳转前的页面A
+输出Key：IP	Value：A+time
+若Url为跳转后的页面B
+输出Key：IP	Value：B+time
+Reduce：输入key:IP	Value:time集合
+声明两个Boolean变量flag1,flag2。初始值为false
+定义两个计数器：count1和count2
+遍历Values：如果value以A开头，flag1变为true，并将时间写入list集合
+再次遍历Values，若value以B开头且时间在list中任意时间之后，flag2变为true
+当flag1为true时，count1++
+当flag1和flag2为true时，count2++
+CleanUp：输出Key：count1+\t+count2	Value：count2/count1
+5.统计每天从baidu跳转过来的PV
+方案：输入：某一天的日志文件		输出：时间和跳转数
+Map输入key：行号		Value:每一行的值
+通过正则匹配，找到从百度跳转过来的访问记录
+Map输出key：date		Value：page
+Reduce：遍历Values，定义全局变量，对Values的遍历次数进行累加
+CleanUp：将统计的次数进行输出
+6.统计每天iOS和Android的UV数
+方案：输入：某一天的日志文件		输出：UV数
+Map输入key：行号		Value:每一行的值
+通过正则表达式匹配通过IOS或Android设备访问的记录
+Map输出key：IP		Value:1
+Reduce
+定义全局变量，每执行一次Reduce计数器加一
+CleanUp：将计数器的值输出
+实时的查询服务需求：
+查询当前的show（musician）的访问数量
+1．通过MapReduce过滤数据，找出日志文件中的show或musician，IP，每当show（musician）的访问量增加时，相应的计数器count加一
+2．以show（musician）为key将数据写入Hbase中
+3．实时的将HBase中的show（musician），count显示出来
 
+
+项目拆解
+12.10-12.12	完成1-6部分的代码编写
+12.13-12.14 完成实时查询部分
+12.15 进行代码测试
